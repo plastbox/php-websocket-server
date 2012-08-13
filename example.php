@@ -14,20 +14,15 @@ class myServer extends WebSocketServer
 				$client->nick = $com[1];
 				break;
 			default:
-				for($i = 0; $i < $this->max_clients; $i++)
-					if($this->clients[$i]->sock != null)
-					{
-						if($i == $client->id)
-							$this->sendData($this->clients[$i], 'You said: '.$msg);
-						else
-							$this->sendData($this->clients[$i], $client->nick.' said: '.$msg);
-					}
-					break;
+				$client->sendData('You said: '.$msg);
+				$client->broadcastData($client->nick.' said: '.$msg);
+				break;
 		}
 	}
 	
 	public function onConnect($client)
 	{
+		$client->nick = 'Guest #'.$client->id;
 		$client->broadcastData($client->nick.' has connected.');
 	}
 	
