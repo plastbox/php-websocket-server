@@ -183,17 +183,11 @@ class WebSocketServer
 		}
 	}
 	
-	public function onMessage($client,$msg)
-	{
-	}
+	abstract public function onMessage($client,$msg);
 	
-	public function onConnect($client)
-	{
-	}
+	abstract public function onConnect($client);
 	
-	public function onDisconnect($client)
-	{
-	}
+	abstract public function onDisconnect($client);
 	
 	public function sendData($client, $payload, $binary = FALSE)
 	{

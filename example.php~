@@ -33,7 +33,6 @@ class myServer extends WebSocketServer
 	
 	public function onDisconnect($client)
 	{
-		$client->broadcastData($client->nick.' has disconnected.');
 	}
 }
 
