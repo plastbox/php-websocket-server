@@ -5,7 +5,7 @@ Simple reusable websocket-server class for php, supporting as many browsers as p
 
 Example of use can be found in example.php
 
-Note: This is for server use only. For building a client that will work on &lt;99% of all browsers, check out:
+Note: This is for server use only. For building a client that will work on &gt;99% of all browsers, check out:
 https://github.com/gimite/web-socket-js/
 
 php-websocket-server replies to requests for the flash policy file, making it compatible with web-socket-js for those pesky archaic browsers that don't support it yet.
