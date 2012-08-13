@@ -15,14 +15,14 @@ class myServer extends WebSocketServer
 			}
 	}
 	
-	public function onConnect($client,$msg)
+	public function onConnect($client)
 	{
 		for($i = 0; $i < $this->max_clients; $i++)
 			if($this->clients[$i]->sock != null && $i != $client->id)
 				$this->sendData($this->clients[$i], $client->id.' has connected.');
 	}
 	
-	public function onDisconnect($client,$msg)
+	public function onDisconnect($client)
 	{
 	}
 }
