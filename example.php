@@ -1,5 +1,6 @@
 <?php
 include('websocket_server.class.php');
+
 class myServer extends WebSocketServer
 {
 	public function onMessage($client,$msg)
@@ -38,6 +39,6 @@ function rLog($msg){
              $msg = "[".date('Y-m-d H:i:s')."] ".$msg;
              print($msg."\n");
 
-}
+
 
 ?>
