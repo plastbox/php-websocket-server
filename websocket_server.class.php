@@ -187,6 +187,10 @@ class WebSocketServer
 	{
 	}
 	
+	public function onTick($client)
+	{
+	}
+	
 	public function onConnect($client)
 	{
 	}
@@ -253,16 +257,19 @@ class WebSocketServer
 		// Server loop
 		while(true)
 		{
-			socket_set_block($sock);
+			socket_set_nonblock($sock);
 			// Setup clients listen socket for reading
 			$read[0] = $sock;
 			for($i = 0; $i<$this->max_clients; $i++)
 			{
 				if($this->clients[$i]->sock != null)
+				{
 					$read[$i+1] = $this->clients[$i]->sock;
+					$this->onTick($this->clients[$i]);
+				}
 			}
 			// Set up a blocking call to socket_select()
-			$ready = socket_select($read, $write = NULL, $except = NULL, $tv_sec = NULL);
+			$ready = socket_select($read, $write = NULL, $except = NULL, $tv_sec = 0, $tv_usec = 10000);
 			// If a new connection is being made add it to the clients array
 			if(in_array($sock,$read))
 			{

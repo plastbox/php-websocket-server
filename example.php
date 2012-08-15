@@ -5,7 +5,7 @@ class myServer extends WebSocketServer
 {
 	public function onMessage($client,$msg)
 	{
-		$com = explode(':', trim($msg));
+		$com = explode(':', strip_tags(trim($msg)));
 		switch($com[0])
 		{
 			case 'nick':
@@ -15,7 +15,7 @@ class myServer extends WebSocketServer
 				break;
 			default:
 				$client->sendData('You said: '.$msg);
-				$client->broadcastData($client->nick.' said: '.$msg);
+				$client->broadcastData('<b>'.$client->nick.'</b> #> '.$msg);
 				break;
 		}
 	}
@@ -23,12 +23,12 @@ class myServer extends WebSocketServer
 	public function onConnect($client)
 	{
 		$client->nick = 'Guest #'.$client->id;
-		$client->broadcastData($client->nick.' has connected.');
+		$client->broadcastData('<b>'.$client->nick.'</b> has connected.');
 	}
 	
 	public function onDisconnect($client)
 	{
-		$client->broadcastData($client->nick.' has disconnected.');
+		$client->broadcastData('<b>'.$client->nick.'</b> has disconnected.');
 	}
 }
 
