@@ -23,7 +23,7 @@ class myServer extends WebSocketServer
 	
 	public function onTick($client)
 	{
-		$buf = fgets($client->outsock, 100);
+		$buf = fgets($client->outsock, 1024);
 		if($buf)
 		{
 			echo ':'.$buf."\n";
