@@ -6,6 +6,7 @@ class WebSocketClient
 	public $sock = null;
 	public $version = '';
 	public $server = null;
+	public $host = null;
 	
 	final public function sendData($payload)
 	{
@@ -16,7 +17,7 @@ class WebSocketClient
 			if($paylen <= 125)
 				$frame = pack('C2a*',  0b10000001, $paylen, $payload);
 			elseif($paylen <= 65536)
-				$frame = pack('C2Sa*', 0b10000001, 126, $paylen, $payload);
+				$frame = pack('C2na*', 0b10000001, 126, $paylen, $payload);
 			else
 				$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
 		}
@@ -38,7 +39,7 @@ class WebSocketClient
 					if($paylen <= 125)
 						$frame = pack('C2a*',  0b10000001, $paylen, $payload);
 					elseif($paylen <= 65536)
-						$frame = pack('C2Sa*', 0b10000001, 126, $paylen, $payload);
+						$frame = pack('C2na*', 0b10000001, 126, $paylen, $payload);
 					else
 						$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
 				}
@@ -212,8 +213,12 @@ class WebSocketServer
 			else
 				$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
 		}
-		else
+		elseif($client->version == 'hybi-00')
+		{
 			$frame = chr(0).$payload.chr(255);
+		}
+		else
+			$frame = $payload;
 		$res = socket_write($client->sock, $frame);
 	}
 	
@@ -233,8 +238,12 @@ class WebSocketServer
 					else
 						$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
 				}
-				else
+				elseif($client->version == 'hybi-00')
+		                {
 					$frame = chr(0).$payload.chr(255);
+				}
+				else
+					$frame = $payload;
 				$res = socket_write($this->clients[$i]->sock, $frame);
 			}
 		}
@@ -287,6 +296,7 @@ class WebSocketServer
 							rLog("Client #".$i." connected");
 							$this->clients[$i]->id = $i;
 							$this->clients[$i]->server = &$this;
+							$this->clients[$i]->host = socket_getpeername($this->clients[$i]->sock);
 						}
 						break;
 					}
@@ -314,7 +324,7 @@ class WebSocketServer
 						socket_write($this->clients[$i]->sock, $this->FLASH_POLICY_FILE);
 					else
 					{
-						if(!$this->clients[$i]->upgraded)
+						if(!$this->clients[$i]->upgraded && substr($n, 0, 4) == 'GET ')
 						{
 							$this->doHandshake($this->clients[$i],$n);
 						}
@@ -329,5 +339,11 @@ class WebSocketServer
 		// Close the master sockets
 		socket_close($sock);
 	}
+}
+
+function rLog($msg)
+{
+	$msg = "[".date('Y-m-d H:i:s')."] ".$msg;
+	print($msg."\n");
 }
 ?>
