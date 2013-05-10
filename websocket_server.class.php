@@ -15,11 +15,11 @@ class WebSocketClient
 			$paylen = strlen($payload);
 			
 			if($paylen <= 125)
-				$frame = pack('C2a*',  0b10000001, $paylen, $payload);
+				$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
 			elseif($paylen <= 65536)
-				$frame = pack('C2na*', 0b10000001, 126, $paylen, $payload);
+				$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
 			else
-				$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
+				$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 		}
 		else
 			$frame = chr(0).$payload.chr(255);
@@ -37,11 +37,11 @@ class WebSocketClient
 				{
 					$paylen = strlen($payload);
 					if($paylen <= 125)
-						$frame = pack('C2a*',  0b10000001, $paylen, $payload);
+						$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
 					elseif($paylen <= 65536)
-						$frame = pack('C2na*', 0b10000001, 126, $paylen, $payload);
+						$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
 					else
-						$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
+						$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 				}
 				else
 					$frame = chr(0).$payload.chr(255);
@@ -148,13 +148,13 @@ class WebSocketServer
 		{
 			// Peek the frames header.
 			$frame = unpack('C2Header', $rawframe);
-			$frame['FIN'] =		(0b10000000 & $frame['Header1']) >> 7;
-			$frame['RSV1'] =	(0b01000000 & $frame['Header1']) >> 6;
-			$frame['RSV2'] =	(0b00100000 & $frame['Header1']) >> 5;
-			$frame['RSV3'] =	(0b00010000 & $frame['Header1']) >> 4;
-			$frame['Opcode'] =	(0b00001111 & $frame['Header1']);
-			$frame['Mask'] =	(0b10000000 & $frame['Header2']) >> 7;
-			$frame['Length'] =	(0b01111111 & $frame['Header2']);
+			$frame['FIN'] =		(bindec('10000000') & $frame['Header1']) >> 7;
+			$frame['RSV1'] =	(bindec('01000000') & $frame['Header1']) >> 6;
+			$frame['RSV2'] =	(bindec('00100000') & $frame['Header1']) >> 5;
+			$frame['RSV3'] =	(bindec('00010000') & $frame['Header1']) >> 4;
+			$frame['Opcode'] =	(bindec('00001111') & $frame['Header1']);
+			$frame['Mask'] =	(bindec('10000000') & $frame['Header2']) >> 7;
+			$frame['Length'] =	(bindec('01111111') & $frame['Header2']);
 			unset($frame['Header1'], $frame['Header2']);
 			// Parse frame
 			switch ($frame['Length'])
@@ -207,11 +207,11 @@ class WebSocketServer
 			$paylen = strlen($payload);
 			
 			if($paylen <= 125)
-				$frame = pack('C2a*',  0b10000001, $paylen, $payload);
+				$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
 			elseif($paylen <= 65536)
-				$frame = pack('C2Sa*', 0b10000001, 126, $paylen, $payload);
+				$frame = pack('C2Sa*', bindec('10000001'), 126, $paylen, $payload);
 			else
-				$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
+				$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 		}
 		elseif($client->version == 'hybi-00')
 		{
@@ -232,11 +232,11 @@ class WebSocketServer
 				{
 					$paylen = strlen($payload);
 					if($paylen <= 125)
-						$frame = pack('C2a*',  0b10000001, $paylen, $payload);
+						$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
 					elseif($paylen <= 65536)
-						$frame = pack('C2Sa*', 0b10000001, 126, $paylen, $payload);
+						$frame = pack('C2Sa*', bindec('10000001'), 126, $paylen, $payload);
 					else
-						$frame = pack('C2Ia*', 0b10000001, 127, $paylen, $payload);
+						$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 				}
 				elseif($client->version == 'hybi-00')
 		                {
