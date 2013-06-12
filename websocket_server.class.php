@@ -21,8 +21,14 @@ class WebSocketClient
 			else
 				$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 		}
-		else
+		elseif($this->version == 'hybi-00')
+		{
 			$frame = chr(0).$payload.chr(255);
+		}
+		else
+		{
+			$frame = $payload;
+		}
 		$res = socket_write($this->sock, $frame);
 	}
 	
@@ -43,8 +49,14 @@ class WebSocketClient
 					else
 						$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
 				}
-				else
+				elseif($client->version == 'hybi-00')
+				{
 					$frame = chr(0).$payload.chr(255);
+				}
+				else
+				{
+					$frame = $payload;
+				}
 				$res = socket_write($this->server->clients[$i]->sock, $frame);
 			}
 		}
