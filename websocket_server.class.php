@@ -7,6 +7,9 @@ class WebSocketClient
 	public $version = '';
 	public $server = null;
 	public $host = null;
+	public $headers = array();
+	public $COOKIE = array();
+	public $SESSION = array();
 	
 	final public function sendData($payload)
 	{
@@ -16,10 +19,16 @@ class WebSocketClient
 			
 			if($paylen <= 125)
 				$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
-			elseif($paylen <= 65536)
+			elseif($paylen < 65536)
 				$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
+			elseif (PHP_INT_MAX > 2147483647)
+			{
+				$frame = pack('C2N2a*', bindec('10000001'), 127, $paylen >> 32, $paylen, $payload);
+			}
 			else
-				$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
+			{
+				$frame = pack('C2N2a*', bindec('10000001'), 127,0,$paylen, $payload);
+			}
 		}
 		elseif($this->version == 'hybi-00')
 		{
@@ -44,19 +53,23 @@ class WebSocketClient
 					$paylen = strlen($payload);
 					if($paylen <= 125)
 						$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
-					elseif($paylen <= 65536)
+					elseif($paylen < 65536)
 						$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
+					elseif (PHP_INT_MAX > 2147483647)
+					{
+						$frame = pack('C2N2a*', bindec('10000001'), 127, $paylen >> 32, $paylen, $payload);
+					}
 					else
-						$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
+					{
+						$frame = pack('C2N2a*', bindec('10000001'), 127,0,$paylen, $payload);
+					}
 				}
-				elseif($client->version == 'hybi-00')
+				elseif($this->server->clients[$i]->version == 'hybi-00')
 				{
 					$frame = chr(0).$payload.chr(255);
 				}
 				else
-				{
 					$frame = $payload;
-				}
 				$res = socket_write($this->server->clients[$i]->sock, $frame);
 			}
 		}
@@ -68,15 +81,20 @@ class WebSocketServer
 	private $host='';
 	private $port=0;
 	protected $max_clients=0;
+	protected $db;
 	public $clients = array();
 	protected $client_object_name='WebSocketClient';
 	protected $FLASH_POLICY_FILE = "<cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\" /></cross-domain-policy>\0";
 	
-	final function __construct($host, $port, $max_clients=20)
+	final function __construct($host, $port, $max_clients=20,$db=null)
 	{
 		$this->host = $host;
 		$this->port = $port;
 		$this->max_clients = $max_clients;
+		if(isset($db) AND $db != null)
+		{
+			$this->db = $db;
+		}
 		$this->FLASH_POLICY_FILE = str_replace('to-ports="*','to-ports="'.$port, $this->FLASH_POLICY_FILE);
 		// No timeouts, flush content immediatly
 		error_reporting(E_ERROR);
@@ -120,6 +138,16 @@ class WebSocketServer
 						"\r\n".$key;
 			$client->upgraded = true;
 			$client->version = 'hybi-00';
+		}
+		$client->headers = $headers;
+		$client->COOKIE = http_parse_cookie($headers['Cookie']);
+		$client->COOKIE = $client->COOKIE->cookies;
+		$client->SESSION = session_save_path().'/sess_'.$client->COOKIE['PHPSESSID'];
+		if(file_exists($client->SESSION))
+		{
+			session_start();
+			session_decode(file_get_contents($client->SESSION));
+			$client->SESSION = $_SESSION;
 		}
 		socket_write($client->sock, $upgrade,strlen($upgrade))
 			or die("Could not write output(handshake)\n");
@@ -187,7 +215,6 @@ class WebSocketServer
 			for ($i = 0, $k = strlen($frame['Payload']); $i < $k; ++$i)
 				$frame['Payload'][$i] = $frame['Payload'][$i] ^ $frame['Masking'][$i % 4];
 
-			//print_r($frame);
 			$this->onMessage($client,$frame['Payload']);
 		}
 		else
@@ -220,10 +247,16 @@ class WebSocketServer
 			
 			if($paylen <= 125)
 				$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
-			elseif($paylen <= 65536)
-				$frame = pack('C2Sa*', bindec('10000001'), 126, $paylen, $payload);
+			elseif($paylen < 65536)
+				$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
+			elseif (PHP_INT_MAX > 2147483647)
+			{
+				$frame = pack('C2N2a*', bindec('10000001'), 127, $paylen >> 32, $paylen, $payload);
+			}
 			else
-				$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
+			{
+				$frame = pack('C2N2a*', bindec('10000001'), 127,0,$paylen, $payload);
+			}
 		}
 		elseif($client->version == 'hybi-00')
 		{
@@ -245,10 +278,16 @@ class WebSocketServer
 					$paylen = strlen($payload);
 					if($paylen <= 125)
 						$frame = pack('C2a*',  bindec('10000001'), $paylen, $payload);
-					elseif($paylen <= 65536)
-						$frame = pack('C2Sa*', bindec('10000001'), 126, $paylen, $payload);
+					elseif($paylen < 65536)
+						$frame = pack('C2na*', bindec('10000001'), 126, $paylen, $payload);
+					elseif (PHP_INT_MAX > 2147483647)
+					{
+						$frame = pack('C2N2a*', bindec('10000001'), 127, $paylen >> 32, $paylen, $payload);
+					}
 					else
-						$frame = pack('C2Ia*', bindec('10000001'), 127, $paylen, $payload);
+					{
+						$frame = pack('C2N2a*', bindec('10000001'), 127,0,$paylen, $payload);
+					}
 				}
 				elseif($client->version == 'hybi-00')
 		                {
@@ -286,7 +325,10 @@ class WebSocketServer
 				if($this->clients[$i]->sock != null)
 				{
 					$read[$i+1] = $this->clients[$i]->sock;
-					$this->onTick($this->clients[$i]);
+					if($this->clients[$i]->upgraded === true)
+					{
+						$this->onTick($this->clients[$i]);
+					}
 				}
 			}
 			// Set up a blocking call to socket_select()
