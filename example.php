@@ -3,51 +3,45 @@ include('websocket_server.class.php');
 
 class myServer extends WebSocketServer
 {
+	public $lastupdate = 0;
+
 	public function onMessage($client,$msg)
 	{
-		$com = explode(':', strip_tags(trim($msg)));
-		switch($com[0])
-		{
-			case 'nick':
-				$client->sendData('You are now knows as '.$com[1]);
-				$client->broadcastData($client->nick.' is now known as '.$com[1]);
-				$client->nick = $com[1];
-				break;
-			default:
-				$client->sendData('You said: '.$msg);
-				$client->broadcastData('<b>'.$client->nick.'</b> #> '.$msg);
-				break;
-		}
+		return;
 	}
 	
 	public function onConnect($client)
 	{
-		$client->nick = 'Guest #'.$client->id;
-		$client->broadcastData('<b>'.$client->nick.'</b> has connected.');
+		return;
 	}
 	
 	public function onDisconnect($client)
 	{
-		$client->broadcastData('<b>'.$client->nick.'</b> has disconnected.');
+		return;
 	}
-}
 
-class myClient extends WebSocketClient
-{
-	public $nick = 'Guest';
+	public function onTick($client)
+	{
+
+		if($this->lastupdate < time())
+		{
+
+			$this->lastupdate = time() + 10;
+
+			//send false as 2ns param to send to all clients
+			$client->broadcastData(json_encode((object) array('now' => date('c'))),false);
+
+		}
+
+	}
+
 }
 
 // Configuration variables
-$host = '10.58.10.175';
-$port = 4041;
+$host = 'localhost';
+$port = 8080;
 
 $wsServer = new myServer($host,$port);
-$wsServer->setClientObject('myClient');
 $wsServer->start();
 
-// Server functions
-function rLog($msg){
-             $msg = "[".date('Y-m-d H:i:s')."] ".$msg;
-             print($msg."\n");
-}
 ?>
